@@ -1,4 +1,4 @@
-# LocoMetrics: High-Resolution Rodent Kinematic Analysis
+# Delta-V-LAP0.1: High-Resolution Rodent Kinematic Analysis
 
 **LocoMetrics** is an open-source computational framework designed to process and analyze instantaneous temporal telemetry from voluntary rodent running wheels. It translates raw, event-driven sensor data into standardized kinematic and circadian variables suitable for preclinical behavioral research.
 
