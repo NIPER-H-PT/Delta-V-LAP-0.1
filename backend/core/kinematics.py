@@ -3,7 +3,7 @@ import numpy as np
 import math
 
 # Exact dynamic circumference calculation (pi * 0.18)
-CIRC_M = math.pi * 0.18  
+CIRC_M = math.pi * 0.18
 GAP_THRESHOLD_SEC = 10  # new bout if the gap since last active row is larger than this
 
 
@@ -44,17 +44,13 @@ def compute_subject_metrics(df: pd.DataFrame, lightS: int, lightE: int) -> dict:
 
     df = df.set_index("timestamp")
 
-    # REMOVED the .diff() and zero-state logic here. 
-    # Your Arduino data is instantaneous, so we process it exactly as it comes in.
-
     # Estimate the usual sampling interval from the data itself.
     sample_sec = _estimate_sample_sec(df.index.to_series())
     if sample_sec <= 0:
         sample_sec = 1.0
 
-    # Realistic Hardware Bounce Filter (Tau_noise = 0.1s)
-    # Filters out double-counts from a single physical magnet pass, 
-    # but allows realistic running speeds to pass through.
+    # Rows arriving < 0.1 s after the previous row (buffered serial lines after a
+    # logging pause) are not counted as active time; their revolutions stay in distance.
     df["time_delta"] = df.index.to_series().diff().dt.total_seconds().fillna(0.1)
     df["is_active"] = (df["revs"] > 0) & (df["time_delta"] >= 0.1)
 
@@ -63,7 +59,7 @@ def compute_subject_metrics(df: pd.DataFrame, lightS: int, lightE: int) -> dict:
     gap_since_active_sec = (
         (df.index.to_series() - last_active_ts)
         .dt.total_seconds()
-        .fillna(float("inf"))   # NaN = no prior active row → always a new bout
+        .fillna(float("inf"))   # NaN = no prior active row -> always a new bout
         .clip(lower=0)
     )
     df["bout_start"] = df["is_active"] & (gap_since_active_sec > GAP_THRESHOLD_SEC)
@@ -73,12 +69,12 @@ def compute_subject_metrics(df: pd.DataFrame, lightS: int, lightE: int) -> dict:
     df["distance_m"] = df["revs"] * CIRC_M
     total_distance_km = float(df["distance_m"].sum() / 1000.0)
 
-    # Peak Speed (Resampled for continuous time + converted to m/min)
+    # Peak Speed: highest mean speed over any 10-s window, counted over
+    # consecutive rows (not clock time), so buffered rows cannot be
+    # compressed into one second. Result in m/min.
     try:
-        # Resample to 1-second bins to prevent event-driven dilution
-        dist_1s = df["distance_m"].resample("1s").sum().fillna(0)
-        # rolling(10).mean() gives meters/second. Multiply by 60 for meters/minute.
-        peak_speed_mmin = float((dist_1s.rolling(10).mean() * 60.0).max())
+        n_win = max(1, int(round(10.0 / sample_sec)))
+        peak_speed_mmin = float((df["distance_m"].rolling(n_win).sum() / (n_win * sample_sec) * 60.0).max())
         if pd.isna(peak_speed_mmin):
             peak_speed_mmin = 0.0
     except Exception:
@@ -97,7 +93,7 @@ def compute_subject_metrics(df: pd.DataFrame, lightS: int, lightE: int) -> dict:
         mean_speed = 0.0
 
     hourly_list = []
-    
+
     for hour_ts, group in df.resample("1h"):
         h_hour = hour_ts.hour
 
@@ -130,10 +126,10 @@ def compute_subject_metrics(df: pd.DataFrame, lightS: int, lightE: int) -> dict:
         else:
             h_mean_speed = 0.0
 
-        # Hourly Peak Speed (m/min)
+        # Hourly Peak Speed (m/min), same 10-s row-based window
         try:
-            h_dist_1s = group["distance_m"].resample("1s").sum().fillna(0)
-            h_peak_speed_mmin = float((h_dist_1s.rolling(10).mean() * 60.0).max())
+            n_win = max(1, int(round(10.0 / sample_sec)))
+            h_peak_speed_mmin = float((group["distance_m"].rolling(n_win).sum() / (n_win * sample_sec) * 60.0).max())
             if pd.isna(h_peak_speed_mmin):
                 h_peak_speed_mmin = 0.0
         except Exception:

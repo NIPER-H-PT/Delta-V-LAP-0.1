@@ -1,33 +1,57 @@
-# Delta-V-LAP0.1: High-Resolution Rodent Kinematic Analysis
+# ΔV-LAP v0.1 – DeltaV Locomotor Analysis Platform
 
-**LocoMetrics** is an open-source computational framework designed to process and analyze instantaneous temporal telemetry from voluntary rodent running wheels. It translates raw, event-driven sensor data into standardized kinematic and circadian variables suitable for preclinical behavioral research.
+Open-source hardware and software for automated monitoring and analysis of
+voluntary wheel running in mice (Arduino UNO R3 + Hall-effect sensors + no-code
+analysis platform).
 
-## Features
-* **Instantaneous Telemetry Processing:** Processes discrete temporal events rather than cumulative approximations.
-* **Hardware Bounce Filtration ($\tau_{noise}$):** Implements a strict 0.1-second filter to eliminate mechanical double-counts without diluting true high-speed locomotion.
-* **Bout Fragmentation:** Utilizes a customizable Inter-Tick Interval (ITI) threshold (default: 10s) to biologically segment active running bouts from resting periods.
-* **Continuous Resampling:** Transforms discrete event data into 1-second continuous timelines to accurately calculate peak speeds (m/min) via rolling averages without sparse-data dilution.
-* **Circadian Mapping:** Automatically segments locomotion into user-defined light/dark photoperiods.
+## Repository contents
+- data_acquisition/
+  - mice_logger.ino      In vivo firmware: 8 channels (D8–D13, A0, A1), polling,
+                         3-ms debounce, cumulative counts sent once per second
+  - logger.py            In vivo serial logger -> CSV (timestamp, sensor1..sensor8);
+                         reconstruction of the unarchived original, same output format
+  - bench_logger.ino     Bench-test firmware: pin-change interrupts, 4-ms lockout,
+                         ms since start + 8 counts every 100 ms
+  - read_wheel_data.py   Bench-test serial logger (python read_wheel_data.py --port COM3)
+- backend/               FastAPI back-end (main.py, core/kinematics.py, core/llm.py)
+- frontend/              React + Vite user interface
+- analysis/one_hz_resolution_check.py   Reproduces Supplementary 12 and the 1-Hz checks
 
-## Deployment Architecture
-To ensure **data sovereignty** (institutional data privacy) and **maximum computational efficiency**, LocoMetrics is designed primarily for local, on-premises execution. Processing high-density temporal kinematics is computationally intensive; utilizing native local hardware allows multi-hour datasets to process in milliseconds.
+## Requirements
+Python 3.10 or later, Node.js 18 or later, Arduino IDE 2.x
 
-### Local Installation (Recommended)
-1. **Clone the repository:**
-   `git clone https://github.com/YourUsername/YourRepoName.git`
-2. **Navigate into the directory:**
-   `cd YourRepoName`
-3. **Install the required dependencies:**
-   `pip install -r requirements.txt`
-4. **Start the local server:**
-   `uvicorn main:app --host 127.0.0.1 --port 8000`
+## Installation
+    git clone https://github.com/NIPER-H-PT/Delta-V-LAP-0.1 DeltaV-LAP
+    cd DeltaV-LAP/backend
+    python -m venv venv
+    venv\Scripts\activate            (Windows)   |   source venv/bin/activate   (macOS/Linux)
+    pip install -r requirements.txt
+    uvicorn main:app --reload --port 8080
 
-The API will now be live on your local machine, ready to process telemetry data instantly and privately.
+In a second terminal:
+    cd DeltaV-LAP/frontend
+    npm install
+    npm run dev                      then open the address shown (usually http://localhost:5173)
 
-## Data Formatting
-The software expects standard comma-separated values (`.csv`) output directly from the hardware micro-controller. 
-* **Required Column 1:** `timestamp` (ISO 8601 format preferred, e.g., `YYYY-MM-DDTHH:MM:SS.ssssss`)
-* **Required Column 2+:** Sensor data columns containing integer tick counts.
+## Recording
+1. Upload data_acquisition/mice_logger.ino to the Arduino UNO R3 (Arduino IDE).
+2. Set the serial port in logger.py and run:  python logger.py
+3. Stop with Ctrl + C; upload the CSV file to ΔV-LAP.
 
-## License
-Distributed under the MIT License. See `LICENSE` for more information.
+## Input format
+CSV with a "timestamp" column and one cumulative revolution-count column per sensor.
+
+## Measures (see manuscript, Table 9)
+Revolutions (primary), distance (revolutions x 0.565 m, nominal rim distance),
+active duration (1-s intervals with >= 1 revolution), bouts (separated by > 10 s),
+mean speed (distance / active duration), peak speed (highest 10-s mean).
+Limits: direction is not recorded; at 1-Hz reporting, speed and active duration
+are biased below ~34 m/min; tested only with 18-cm saucer wheels.
+
+## Optional AI summary
+Create backend/.env containing:  GEMINI_API_KEY=your_api_key_here
+When used, daily summaries (no raw counts), the file name and subject labels are
+sent to the Google Gemini API. All other features run locally without a key.
+
+## Licence
+MIT (see LICENSE).

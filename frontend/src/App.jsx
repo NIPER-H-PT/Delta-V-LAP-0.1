@@ -333,7 +333,7 @@ export default function App() {
           const lightDist = chunk.filter(h => h.isLight).reduce((acc, h) => acc + h.distanceKm, 0); const darkDist = chunk.filter(h => !h.isLight).reduce((acc, h) => acc + h.distanceKm, 0);
           const dlRatio = lightDist > 0 ? (darkDist / lightDist) : "";
           const activeSpeedSum = chunk.reduce((acc, h) => acc + (h.meanSpeed * h.activeDurMin), 0); const meanSpeed = actMin > 0 ? (activeSpeedSum / actMin) : 0;
-          const peakSpeed = chunk.length > 0 ? Math.max(...chunk.map(h => h.meanSpeed)) : 0;
+          const peakSpeed = chunk.length > 0 ? Math.max(...chunk.map(h => h.peakSpeed || 0)) : 0; // daily peak = highest hourly 10-s peak
           csv += `${session.fileName},${subj},${day},${dist.toFixed(4)},${actMin.toFixed(2)},${bouts},${meanSpeed.toFixed(2)},${peakSpeed.toFixed(2)},${lightDist.toFixed(4)},${darkDist.toFixed(4)},${typeof dlRatio === 'number' ? dlRatio.toFixed(2) : ''}\n`;
         }
       });
