@@ -15,7 +15,7 @@ analysis platform).
   - read_wheel_data.py   Bench-test serial logger (python read_wheel_data.py --port COM3)
 - backend/               FastAPI back-end (main.py, core/kinematics.py, core/llm.py)
 - frontend/              React + Vite user interface
-- analysis/one_hz_resolution_check.py   Reproduces Supplementary 12 and the 1-Hz checks
+- analysis/one_hz_resolution_check.py   Reproduces - analysis/one_hz_resolution_check.py   Reproduces Supplementary 8 and the 1-Hz checks and the 1-Hz checks
 
 ## Requirements
 Python 3.10 or later, Node.js 18 or later, Arduino IDE 2.x
