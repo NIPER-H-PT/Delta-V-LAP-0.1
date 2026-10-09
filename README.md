@@ -41,7 +41,7 @@ In a second terminal:
 ## Input format
 CSV with a "timestamp" column and one cumulative revolution-count column per sensor.
 
-## Measures (see manuscript, Table 9)
+## Measures (see manuscript, ## Measures (see manuscript, Table 10))
 Revolutions (primary), distance (revolutions x 0.565 m, nominal rim distance),
 active duration (1-s intervals with >= 1 revolution), bouts (separated by > 10 s),
 mean speed (distance / active duration), peak speed (highest 10-s mean).
