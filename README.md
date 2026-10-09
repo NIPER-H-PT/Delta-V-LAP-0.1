@@ -15,7 +15,7 @@ analysis platform).
   - read_wheel_data.py   Bench-test serial logger (python read_wheel_data.py --port COM3)
 - backend/               FastAPI back-end (main.py, core/kinematics.py, core/llm.py)
 - frontend/              React + Vite user interface
-- analysis/one_hz_resolution_check.py   Reproduces - analysis/one_hz_resolution_check.py   Reproduces Supplementary 8 and the 1-Hz checks and the 1-Hz checks
+  - analysis/one_hz_resolution_check.py   Reproduces Supplementary 8 and the 1-Hz checks
 
 ## Requirements
 Python 3.10 or later, Node.js 18 or later, Arduino IDE 2.x
@@ -41,7 +41,7 @@ In a second terminal:
 ## Input format
 CSV with a "timestamp" column and one cumulative revolution-count column per sensor.
 
-## Measures (see manuscript, ## Measures (see manuscript, Table 10))
+## Measures (see manuscript, Table 10)
 Revolutions (primary), distance (revolutions x 0.565 m, nominal rim distance),
 active duration (1-s intervals with >= 1 revolution), bouts (separated by > 10 s),
 mean speed (distance / active duration), peak speed (highest 10-s mean).
