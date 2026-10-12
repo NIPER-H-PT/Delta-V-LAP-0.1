@@ -6,7 +6,7 @@ Part 1 (no input needed): simulates steady wheel rotation at known speeds,
 bins the revolutions into 1-s intervals exactly as the logger does, and applies
 (a) the ΔV-LAP rule (active time = 1-s intervals with >= 1 revolution) and
 (b) a gap-bridged rule (pauses of <= 2 s between revolutions count as running).
-Reproduces Supplementary 12. Fixed random seed -> identical output every run.
+Reproduces Supplementary 8. Fixed random seed -> identical output every run.
 
 Part 2 (optional): the same checks on a real recording, e.g.
     python one_hz_resolution_check.py Continuous_Observation.csv
@@ -99,7 +99,7 @@ def real_data(path, first_day=1, last_day=9, exclude_days=(2,)):
 
 
 if __name__ == "__main__":
-    print("Part 1 — simulation (Supplementary 12)")
+    print("Part 1 — simulation (Supplementary 8)")
     print(simulate().to_string(index=False))
     if len(sys.argv) > 1:
         print("\nPart 2 — real recording:", sys.argv[1])
